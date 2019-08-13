@@ -22,6 +22,8 @@ There are more ways to configure properties with Spring Boot. See [Externalized 
 The most common ones seem to be command line arguments (`--server.port=8089)`, `SPRING_APPLICATION_JSON`, Java System properties (`-Dserver.port=8089`) and OS environment variables.
 See the next section where these same mechanisms are demonstrated for setting a placeholder called APP_TITLE.
 
+A list of [common application properties](https://docs.spring.io/spring-boot/docs/current/reference/html/common-application-properties.html) is documented for Spring.
+
 Defining Properties at Deployment Time
 --------------------------------------
 The following syntax in an application properties file will cause the property `app.mandatory.property.title` to be set
