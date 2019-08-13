@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration>
+    <include resource="org/springframework/boot/logging/logback/defaults.xml"/>
+    <!-- Log to console for any Spring profile (including none) except int-on-premises and prod-on-premises -->
+    <springProfile name="!(int-on-premises | prod-on-premises)">
+        <include resource="org/springframework/boot/logging/logback/console-appender.xml"/>
+        <root level="INFO">
+            <appender-ref ref="CONSOLE"/>
+        </root>
+    </springProfile>
+    <!-- Log to file (only) when deploying with one of the Spring profiles int-on-premises or prod-on-premises (or both). -->
+    <springProfile name="int-on-premises | prod-on-premises">
+        <include resource="org/springframework/boot/logging/logback/file-appender.xml"/>
+        <root level="INFO">
+            <appender-ref ref="FILE"/>
+        </root>
+    </springProfile>
+</configuration>
