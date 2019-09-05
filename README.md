@@ -118,7 +118,7 @@ Required dependency:
 
     runtimeOnly 'org.mariadb.jdbc:mariadb-java-client'
 
-Required properties:
+Setting the following properties with the shown values causes the application to use MariaDB:
 
     spring.datasource.url=jdbc:mariadb://localhost:3306/springboot_mariadb
     spring.datasource.username=root
@@ -236,3 +236,92 @@ Show all enabled endpoints:
 The entire Spring environment:
 
 <http://localhost:8014/actuator/env>
+
+
+Deployment
+==========
+
+Cloud Foundry
+-------------
+
+### JAR ###
+
+Deploy with app name `ulk` (but don't start it). This will result in the route <https://ulk.cfapps.io/> and that will be a conflict if another app on Cloud Foundry is using the same name.
+A way to avoid this type of conflict is adding the option `--random-route` to the following command.
+
+    cf push -p ./build/libs/spring-cloud-0.0.1-SNAPSHOT.jar ulk --no-start
+
+Before starting the app set "User Provided Environment Variables" (in the Cloud Foundry web GUI):
+
+    SPRING_PROFILES_ACTIVE      prod-cloud
+    APP_TITLE                   "My App in the Cloud"
+
+Note that there is no need to go trough the indirection of a `${VAR}` substitution with a properties file.
+This is demonstrated with `application-prod-cloud.properties` which only contains the `app.mandatory.property.title` property.
+And even that property technically does not have to appear in the properties file. It is just a convenient documentation that the application refers to a proprietary property.
+
+Lets set the environment variables that will cause the app to connect to MariaDB (ClearDB):
+
+    spring.datasource.url                 "jdbcUrl" from the service key
+    spring.datasource.username            "username" from the service key
+    spring.datasource.password            "password" from the service key
+    spring.datasource.driver-class-name   org.mariadb.jdbc.Driver
+
+This could be done in the web GUI, too, but for a change let's use the command line:
+
+    cf set-env ulk spring.datasource.url "jdbc:mysql://us-cdbr-iron-east-02.cleardb.net/ad_e22d3fe44ce0542?user=bd50d0cdaa1c7b\u0026password=3ed3081f"
+    cf set-env ulk spring.datasource.username "bd50d0cdaa1c7b"
+    cf set-env ulk spring.datasource.password "3ed3081f"
+    cf set-env ulk spring.datasource.driver-class-name "org.mariadb.jdbc.Driver"
+
+About the driver class: Something must be used that is provided in the dependencies of the app itself.
+In this case "org.mariadb.jdbc.Driver" is used and that works with ClearDB which currently is the MySQL service on
+Cloud Foundry. But obviously you would want the best matching driver and you would have to add that in build.gradle
+as a dependency.
+
+Start/stop the app to test it:
+
+    cf start ulk
+    
+### Manage App on Cloud Foundry ###
+
+Restage a running app to make environment changes visible:
+
+    cf restage ulk
+
+Stop the app:
+    cf stop ulk
+
+Completely remove an application:
+
+    cf delete -r ulk
+
+### Docker ###
+We need a JAR to build the Docker image:
+
+    ./gradlew clean build
+
+Start with a clean slate and delete all docker images, containers and volumes (careful!):
+
+    docker system prune -a --volumes    # BE GONE, ye all!
+
+Create the Docker image (tag is "greatest", more classical would be "latest"):
+
+    docker build -t spring-cloud:greatest -f docker/Dockerfile .
+
+To deploy a Docker image to Cloud Foundry it must live in a publicly accessible repository. If you have an
+account on Docker Hub and are logged in as "staticnoiselog":
+
+    docker tag spring-cloud:greatest staticnoiselog/spring-cloud:greatest
+    docker push staticnoiselog/spring-cloud:greatest
+
+Deploy Docker image to Cloud Foundry from Docker Hub. In this example environment variables are
+ provided through a file `cf-manifest.yml`, but other mechanisms should work, too.
+Note that in his setup the `server.port` must be set to 8080.
+
+    CF_DOCKER_PASSWORD=docker-hub-password cf push --docker-image staticnoiselog/spring-cloud:greatest -f docker/cf-manifest.yml --no-start
+
+    cf start dulk
+
+Check it out:    
+<https://dulk.cfapps.io/config/spring-profiles-active>    
