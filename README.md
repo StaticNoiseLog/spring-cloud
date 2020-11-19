@@ -181,6 +181,11 @@ Three ways to set Spring profiles on the command line:
 
 ### application.properties ###
     spring.profiles.active=dev
+    
+### manifest.yml ###
+    applications:
+      env:
+        SPRING_PROFILES_ACTIVE: dev
 
 
 Logging
@@ -269,9 +274,9 @@ Lets set the environment variables that will cause the app to connect to MariaDB
 
 This could be done in the web GUI, too, but for a change let's use the command line:
 
-    cf set-env ulk spring.datasource.url "jdbc:mysql://us-cdbr-iron-east-02.cleardb.net/ad_e22d3fe44ce0542?user=bd50d0cdaa1c7b\u0026password=3ed3081f"
+    cf set-env ulk spring.datasource.url "jdbc:mysql://us-cdbr-iron-east-02.cleardb.net/ad_e22d3fe44ce0542?user=bd50d0cdaa1c7b\u0026password=dbpassword"
     cf set-env ulk spring.datasource.username "bd50d0cdaa1c7b"
-    cf set-env ulk spring.datasource.password "3ed3081f"
+    cf set-env ulk spring.datasource.password "dbpassword"
     cf set-env ulk spring.datasource.driver-class-name "org.mariadb.jdbc.Driver"
 
 About the driver class: Something must be used that is provided in the dependencies of the app itself.
