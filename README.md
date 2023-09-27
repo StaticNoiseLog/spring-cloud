@@ -9,7 +9,7 @@ Application Configuration
 
 Properties
 ----------
-If you have both YAML and properties files at the same time, Spring Boot picks .properties or .yaml files in the
+If you have both YAML and properties files at the same time, Spring Boot picks *.properties or *.yaml files in the
 following sequence:
 
 1. application-${profile}.yml
@@ -23,7 +23,7 @@ There are more ways to configure properties with Spring Boot.
 See [Externalized Configuration](https://docs.spring.io/spring-boot/docs/current/reference/html/boot-features-external-config.html)
 for a full description.  
 The most common ones seem to be command line arguments (`--server.port=8089)`, `SPRING_APPLICATION_JSON`, Java System
-properties (`-Dserver.port=8089`) and OS environment variables. See the next section where these same mechanisms are
+properties (`-Dserver.port=8089`) and OS environment variables. See the next section where these mechanisms are
 demonstrated for setting a placeholder called APP_TITLE.
 
 A list
@@ -350,6 +350,7 @@ Docker Hub and are logged in as "staticnoiselog":
 
 Deploy Docker image to Cloud Foundry from Docker Hub. In this example environment variables are provided through a
 file `cf-manifest.yml`, but other mechanisms should work, too. Note that in his setup the `server.port` must be set to
+
 8080.
 
     CF_DOCKER_PASSWORD=docker-hub-password cf push --docker-image staticnoiselog/spring-cloud:greatest -f docker/cf-manifest.yml --no-start
@@ -357,4 +358,76 @@ file `cf-manifest.yml`, but other mechanisms should work, too. Note that in his 
     cf start dulk
 
 Check it out:    
-<https://dulk.cfapps.io/config/spring-profiles-active>    
+<https://dulk.cfapps.io/config/spring-profiles-active>
+
+### Deployment in ACME Corporate Environment ###
+
+Outside the VPN:
+
+    ./gradlew clean build
+    docker system prune -a --volumes    # beware, all is gone!
+
+    docker build -t dulk:latest -f docker/Dockerfile .
+
+    docker tag dulk:latest nwb-docker-local.bin.acme.com/dulk:latest
+    docker push nwb-docker-local.bin.acme.com/dulk:latest
+
+In VPN:
+
+Make a copy of `cf-manifest.yml` called `cf-manifest-corp.yml` and edit according to your corporate cloud environment.
+You will have to create a MariaDB instance with a service key to complete the YAML.
+
+Deploy the app without starting it. The CF_DOCKER_PASSWORD must be set corresponding to the applications.docker.username
+in  `cf-manifest-corp.yml` (login for the repository that holds the Docker image).
+
+    CF_DOCKER_PASSWORD=artifactory_pwd cf push --docker-image nwb-docker-local.bin.acme.com/dulk:latest -f docker/cf-manifest-corp.yml --no-start
+
+Then in the CF GUI, bind the MariaDB service to the app, start it and map a route (dulk.scapp.acme.com).
+
+
+NOTES
+======
+
+AWS
+---
+https://adamtheautomator.com/aws-codepipeline/?
+
+Azure
+-----
+To deploy a Spring Boot app to Azure, you can follow these general steps:
+
+- Sign up for an Azure account: If you don't already have an Azure account, sign up for one
+  at https://azure.microsoft.com/.
+
+- Create an Azure Web App: In the Azure portal, create a new Web App resource. This will serve as the hosting
+  environment for your Spring Boot app. Provide a unique name, choose the appropriate subscription, resource group, and
+  operating system (Linux or Windows) for your app.
+
+- Build your Spring Boot app: Build your Spring Boot app using your preferred build tool (e.g., Maven or Gradle).
+  Generate an executable JAR or WAR file.
+
+- Configure your Spring Boot app: Make any necessary configuration changes to your Spring Boot app, such as setting the
+  server port and database connection details. Ensure that your app is compatible with the chosen operating system (
+  Linux or Windows).
+
+- Package your Spring Boot app as a Docker image: Use Docker to package your Spring Boot app as a Docker image. Write a
+  Dockerfile that specifies the necessary dependencies and configurations for running your app.
+
+- Push the Docker image to a container registry: Choose a container registry in Azure, such as Azure Container
+  Registry (ACR) or Azure Container Instances (ACI), and push your Docker image to the registry. This will make your
+  app's Docker image available for deployment.
+
+- Configure deployment settings: In the Azure portal, navigate to your Web App resource and configure the deployment
+  settings. Choose the container registry and the Docker image you want to deploy. Specify the container settings, such
+  as the port and environment variables.
+
+- Deploy your Spring Boot app: Trigger the deployment process to deploy your Spring Boot app to Azure. This process will
+  pull the Docker image from the container registry and start running it in the Web App environment.
+
+- Monitor and test your deployed app: Monitor the logs and metrics of your deployed app in the Azure portal. Test your
+  app to ensure it's functioning correctly in the Azure environment.
+
+These steps provide a general overview of deploying a Spring Boot app to Azure. The specific details may vary depending
+on your application requirements, Azure configuration, and deployment choices. It's recommended to refer to the Azure
+documentation and guides for more detailed instructions and best practices related to deploying Spring Boot apps on
+Azure.

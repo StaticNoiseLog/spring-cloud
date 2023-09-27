@@ -1,0 +1,13 @@
+applications:
+  - name: dulk
+    docker:
+      image: nwb-docker-local.bin.swisscom.com/dulk:latest
+      username: taakabe4
+    env:
+      server.port: 8080
+      SPRING_PROFILES_ACTIVE: prod-cloud
+      APP_TITLE: Cloudy Dockers today
+      spring.datasource.url: jdbc:mariadb://10.144.120.65:3306/276c935d-1efd-4763-a3d7-feda82bf3c95?user=94e9626b-1646-437e-917a-8053e8538eff&password=i3VCkiF8waDargZUri84vXn4s0B
+      spring.datasource.username: 94e9626b-1646-437e-917a-8053e8538eff
+      spring.datasource.password: i3VCkiF8waDargZUri84vXn4s0B
+      spring.datasource.driver-class-name: org.mariadb.jdbc.Driver
