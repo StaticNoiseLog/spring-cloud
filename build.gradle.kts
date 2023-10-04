@@ -20,9 +20,12 @@ dependencies {
     implementation("org.springframework.boot:spring-boot-starter-data-rest")
     implementation("org.springframework.boot:spring-boot-starter-web")
     runtimeOnly("org.springframework.boot:spring-boot-starter-actuator")
-    runtimeOnly("com.h2database:h2")
-    runtimeOnly("org.mariadb.jdbc:mariadb-java-client")
     runtimeOnly("org.flywaydb:flyway-core")
-    testImplementation("junit:junit")
+    runtimeOnly("org.postgresql:postgresql")
+    testImplementation("com.h2database:h2") // because H2DatabaseServer.java
     testImplementation("org.springframework.boot:spring-boot-starter-test")
+}
+
+tasks.named<Test>("test") {
+    useJUnitPlatform()
 }

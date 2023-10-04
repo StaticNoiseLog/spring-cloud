@@ -2,28 +2,28 @@ package com.example.demo;
 
 import com.example.demo.cat.Cat;
 import com.example.demo.cat.CatRepository;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
-import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.servlet.MockMvc;
 
 import java.util.stream.Stream;
 
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 /**
- * This is a unit test that leverages the Spring framework test runner. We configure it to also interact
- * nicely with the Spring Boot testing apparatus, standing up a mock web application.
+ * This is a unit test that leverages the Spring framework test runner.
+ * <p>
+ * We don't load a real HTTP server, just have Spring mock one (SpringBootTest.WebEnvironment.MOCK). This is good enough
+ * for unit tests (but not for integration tests where you want RANDOM_PORT or DEFINED_PORT).
  */
-@RunWith(SpringRunner.class)
+//@RunWith(SpringRunner.class)
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.MOCK)
 @AutoConfigureMockMvc
 public class DemoApplicationTests {
@@ -33,7 +33,7 @@ public class DemoApplicationTests {
     @Autowired
     private CatRepository catRepository;
 
-    @Before
+    @BeforeAll
     public void before() {
         Stream.of("Felix", "Garfield", "Whiskers")
                 .forEach(n -> catRepository.save(new Cat(n)));

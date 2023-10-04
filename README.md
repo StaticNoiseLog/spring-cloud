@@ -3,63 +3,11 @@ Purpose
 
 Demonstrate some default practices for a Spring Boot application to be deployed in a cloud (and other environments).
 
+Features:
 
-Application Configuration
-=========================
-
-Properties
-----------
-If you have both YAML and properties files at the same time, Spring Boot picks *.properties or *.yaml files in the
-following sequence:
-
-1. application-${profile}.yml
-2. application-${profile}.properties
-3. application.yml
-4. application.properties
-
-Note that properties already set earlier in the sequence are NOT overridden by later definitions.
-
-There are more ways to configure properties with Spring Boot.
-See [Externalized Configuration](https://docs.spring.io/spring-boot/docs/current/reference/html/boot-features-external-config.html)
-for a full description.  
-The most common ones seem to be command line arguments (`--server.port=8089)`, `SPRING_APPLICATION_JSON`, Java System
-properties (`-Dserver.port=8089`) and OS environment variables. See the next section where these mechanisms are
-demonstrated for setting a placeholder called APP_TITLE.
-
-A list
-of [common application properties](https://docs.spring.io/spring-boot/docs/current/reference/html/common-application-properties.html)
-is documented for Spring.
-
-Defining Properties at Deployment Time
---------------------------------------
-The following syntax in an application properties file will cause the property `app.mandatory.property.title` to be set
-to the value of `APP_TITLE` when the application is deployed. While you could set the
-property `app.mandatory.property.title`
-directly with the mechanisms shown below, it may be useful to document properties by explicitly listing them in the
-application properties file.
-
-    app.mandatory.property.title=${APP_TITLE}
-
-Here are some ways how the value for a placeholder like APP_TITLE can be set as a property on deployment:
-
-    java -jar ./build/libs/spring-cloud-0.0.1-SNAPSHOT.jar --APP_TITLE='App on DEV' --spring.profiles.active=dev
-
-    java -DAPP_TITLE='App on DEV' -jar ./build/libs/spring-cloud-0.0.1-SNAPSHOT.jar --spring.profiles.active=dev
-
-    APP_TITLE='App on DEV'
-    export APP_TITLE
-    java -jar ./build/libs/spring-cloud-0.0.1-SNAPSHOT.jar --spring.profiles.active=dev
-
-An interesting option is setting properties through SPRING_APPLICATION_JSON, an inline JSON embedded in an environment
-variable or system property:
-
-    java -jar ./build/libs/spring-cloud-0.0.1-SNAPSHOT.jar --spring.application.json='{"APP_TITLE":"App on DEV"}' --spring.profiles.active=dev
-
-    java -DSPRING_APPLICATION_JSON='{"APP_TITLE":"App on DEV"}' -jar ./build/libs/spring-cloud-0.0.1-SNAPSHOT.jar --spring.profiles.active=dev
-
-    SPRING_APPLICATION_JSON='{"APP_TITLE":"App on DEV"}'
-    export SPRING_APPLICATION_JSON
-    java -jar ./build/libs/spring-cloud-0.0.1-SNAPSHOT.jar --spring.profiles.active=dev
+- Flyway for DB creation
+- PostgreSQL DB in production
+- H2 in-memory DB for unit tests
 
 Persistence
 ===========
@@ -70,7 +18,8 @@ This dependency is enough to enable Flyway:
 
     runtimeOnly 'org.flywaydb:flyway-core'
 
-The SQL scripts go in `resources/db.migration`.
+The SQL scripts go in [`resources/db.migration`](src/main/resources/db/migration) by default. If you have a good reason
+to change this, you can do so in `application.properties` with `spring.flyway.locations=classpath:/db/migration`.
 
 With Spring Boot and the default setup, Hibernate (the default JPA implementation) plays nicely with Flyway:
 The database is created by Flyway, Hibernate does not interfere.
@@ -84,7 +33,7 @@ JPA
 ---
 Use the `@Entity` annotation on the model classes.
 
-Because this project wants to use MariaDB for cloud deployments and H2 for local tests, a way has to be found to
+Because this project wants to use PostgreSQL for cloud deployments and H2 for local tests, a way has to be found to
 generate primary keys that works in both scenarios. The way chosen was to use this annotation:
 
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -145,6 +94,63 @@ first start of the application:
 
     DROP DATABASE IF EXISTS springboot_mariadb;
     CREATE DATABASE IF NOT EXISTS springboot_mariadb;
+
+Application Configuration
+=========================
+
+Properties
+----------
+If you have both YAML and properties files at the same time, Spring Boot picks *.properties or *.yaml files in the
+following sequence:
+
+1. application-${profile}.yml
+2. application-${profile}.properties
+3. application.yml
+4. application.properties
+
+Note that properties already set earlier in the sequence are NOT overridden by later definitions.
+
+There are more ways to configure properties with Spring Boot.
+See [Externalized Configuration](https://docs.spring.io/spring-boot/docs/current/reference/html/boot-features-external-config.html)
+for a full description.  
+The most common ones seem to be command line arguments (`--server.port=8089)`, `SPRING_APPLICATION_JSON`, Java System
+properties (`-Dserver.port=8089`) and OS environment variables. See the next section where these mechanisms are
+demonstrated for setting a placeholder called APP_TITLE.
+
+A list
+of [common application properties](https://docs.spring.io/spring-boot/docs/current/reference/html/common-application-properties.html)
+is documented for Spring.
+
+Defining Properties at Deployment Time
+--------------------------------------
+The following syntax in an application properties file will cause the property `app.mandatory.property.title` to be set
+to the value of `APP_TITLE` when the application is deployed. While you could set the
+property `app.mandatory.property.title`
+directly with the mechanisms shown below, it may be useful to document properties by explicitly listing them in the
+application properties file.
+
+    app.mandatory.property.title=${APP_TITLE}
+
+Here are some ways how the value for a placeholder like APP_TITLE can be set as a property on deployment:
+
+    java -jar ./build/libs/spring-cloud-0.0.1-SNAPSHOT.jar --APP_TITLE='App on DEV' --spring.profiles.active=dev
+
+    java -DAPP_TITLE='App on DEV' -jar ./build/libs/spring-cloud-0.0.1-SNAPSHOT.jar --spring.profiles.active=dev
+
+    APP_TITLE='App on DEV'
+    export APP_TITLE
+    java -jar ./build/libs/spring-cloud-0.0.1-SNAPSHOT.jar --spring.profiles.active=dev
+
+An interesting option is setting properties through SPRING_APPLICATION_JSON, an inline JSON embedded in an environment
+variable or system property:
+
+    java -jar ./build/libs/spring-cloud-0.0.1-SNAPSHOT.jar --spring.application.json='{"APP_TITLE":"App on DEV"}' --spring.profiles.active=dev
+
+    java -DSPRING_APPLICATION_JSON='{"APP_TITLE":"App on DEV"}' -jar ./build/libs/spring-cloud-0.0.1-SNAPSHOT.jar --spring.profiles.active=dev
+
+    SPRING_APPLICATION_JSON='{"APP_TITLE":"App on DEV"}'
+    export SPRING_APPLICATION_JSON
+    java -jar ./build/libs/spring-cloud-0.0.1-SNAPSHOT.jar --spring.profiles.active=dev
 
 REST API
 ========
@@ -267,6 +273,62 @@ Show all enabled endpoints:
 The entire Spring environment:
 
 <http://localhost:8014/actuator/env>
+
+
+Testing
+========
+
+See "Learning Spring Boot 3.0 - Third Edition.pdf", Chapter 5
+
+Good link for JPA testing:
+https://howtodoinjava.com/spring-boot2/testing/datajpatest-annotation/
+
+
+- 
+
+No annotations for pure Unit tests.
+
+Use this to test the REST API:
+
+    @RunWith(SpringRunner.class)
+    @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.MOCK)
+    @AutoConfigureMockMvc
+    public class DemoApplicationTests {
+
+        @Autowired
+        private MockMvc mvc;
+
+
+This should be 
+
+
+### Good Stackoverflow:
+<https://stackoverflow.com/questions/24223631/h2-postgresql-mode-seems-not-working-for-me>
+
+There's no hard line between " unit" and "integration" tests. In this case, H2 is an external component too. Purist unit
+tests would have a dummy responder to queries as part of the test harness. Testing against H2 is just as much an "
+integration" test as testing against PostgreSQL. The fact that it's in-process and in-memory is a convenience, but not
+functionally significant.
+
+If you want to unit test you should write another database target for your app to go alongside your "PostgreSQL", "
+SybaseIQ", etc targets. Call it, say, "MockDatabase". This should just return the expected results from queries. It
+doesn't really run the queries, it only exists to test the behaviour of the rest of the code.
+
+Personally, I think that's a giant waste of time, but that's what a unit testing purist would do to avoid introducing
+external dependencies into the test harness.
+
+If you insist on having unit (as opposed to integration) tests for your DB components but can't/won't write a mock
+interface, you must instead find a way to use an existing one. H2 would be a reasonable candidate for this - but you'll
+have to write a new backend with a new set of queries that work for H2, you can't just re-use your PostgreSQL backend.
+As we've already established, H2 doesn't support all the features you need to use with PostgreSQL so you'll have to find
+different ways to do the same things with H2. One option would be to create a simple H2 database with "expected" results
+and simple queries that return those results, completely ignoring the real application's schema. The only real downside
+here is that it can be a major pain to maintain ... but that's unit testing.
+
+Personally, I'd just test with PostgreSQL. Unless I'm testing individual classes or modules that stand alone as
+narrow-interfaced well-defined units, I don't care whether someone calls it a "unit" or "integration" test. I'll unit
+test, say, data validation classes. For database interface code purist unit testing makes very little sense and I'll
+just do integration tests.
 
 
 Deployment
